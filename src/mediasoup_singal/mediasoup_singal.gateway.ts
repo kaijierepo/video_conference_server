@@ -34,16 +34,28 @@ export class MediasoupSingalGateway
     return this.mediasoupSingalService.produce(data);
   }
 
+  @SubscribeMessage('consume')
+  consume(@MessageBody() data: any): Promise<any> {
+    return this.mediasoupSingalService.consume(data);
+  }
+
   // 创建消费者传输
   @SubscribeMessage('createConsumerTransport')
-  createConsumerTransport(
-    @MessageBody() data: any,
-    @ConnectedSocket() client: Socket,
-    callback: (result: any) => void,
-  ): void {
+  async createConsumerTransport(@MessageBody() data: any): Promise<any> {
     console.log('Received createProducerTransport:', data);
-    const result = this.mediasoupSingalService.createConsumerTransport(data);
-    callback(result);
+    const result =
+      await this.mediasoupSingalService.createConsumerTransport(data);
+    return result;
+  }
+
+  @SubscribeMessage('resumeProducer')
+  resumeProducer(@MessageBody() data: any): Promise<any> {
+    return this.mediasoupSingalService.resumeProducer(data);
+  }
+
+  @SubscribeMessage('pauseProducer')
+  pauseProducer(@MessageBody() data: any): Promise<any> {
+    return this.mediasoupSingalService.pauseProducer(data);
   }
 
   // 连接传输
@@ -69,6 +81,40 @@ export class MediasoupSingalGateway
     return result;
   }
 
+  //连接消费者传输
+  @SubscribeMessage('connectConsumerTransport')
+  connectConsumerTransport(@MessageBody() data: any): Promise<any> {
+    console.log('Received connectConsumerTransport:', data);
+    const result = this.mediasoupSingalService.connectConsumerTransport(data);
+    return result;
+  }
+
+  // 连接生产者传输
+  @SubscribeMessage('connectProducerTransport')
+  async connectProducerTransport(
+    @MessageBody()
+    data: {
+      transportId: string;
+      dtlsParameters: any;
+      roomId: string;
+      clientId: string;
+    },
+  ): Promise<any> {
+    try {
+      console.log('Connecting producer transport:', data);
+      const result =
+        await this.mediasoupSingalService.connectProducerTransport(data);
+
+      return result;
+    } catch (error) {
+      console.error('Error connecting producer transport:', error);
+      return {
+        event: 'connectProducerTransport',
+        data: { error: error.message },
+      };
+    }
+  }
+
   // 使用 @SubscribeMessage 装饰器来处理 'getRouterRtpCapability' 事件
   @SubscribeMessage('getRouterRtpCapability')
   async getRouterRtpCapability(
@@ -87,6 +133,11 @@ export class MediasoupSingalGateway
       };
       return errorResult;
     }
+  }
+
+  @SubscribeMessage('resume')
+  resume(@MessageBody() data: any): Promise<any> {
+    return this.mediasoupSingalService.resume(data);
   }
 
   // 使用 @SubscribeMessage 装饰器来处理 'message' 事件
@@ -115,6 +166,49 @@ export class MediasoupSingalGateway
     };
   }
 
+  @SubscribeMessage('leaveRoom')
+  async handleLeaveRoom(
+    @MessageBody() data: { roomId: string; clientId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      // 离开 socket.io 房间
+      client.leave(data.roomId);
+
+      // 清理资源
+      await this.mediasoupSingalService.handleClientLeave(
+        data.roomId,
+        data.clientId,
+      );
+
+      return {
+        event: 'leaveRoom',
+        data: { message: `Left room ${data.roomId}` },
+      };
+    } catch (error) {
+      return {
+        event: 'error',
+        data: { message: error.message },
+      };
+    }
+  }
+
+  // 处理客户端断开连接
+  handleDisconnect(client: Socket) {
+    console.log('Client disconnected:', client.id);
+
+    // 获取客户端所在的房间
+    const rooms = Array.from(client.rooms.values());
+
+    // 清理每个房间中的资源
+    rooms.forEach(async (roomId) => {
+      if (roomId !== client.id) {
+        // socket.io 会自动创建以客户端 ID 为名的房间
+        await this.mediasoupSingalService.handleClientLeave(roomId, client.id);
+      }
+    });
+  }
+
   afterInit(server: Server) {
     console.log('Gateway initialized');
     this.mediasoupSingalService.setServer(server);
@@ -122,10 +216,6 @@ export class MediasoupSingalGateway
 
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id);
-  }
-
-  handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
   }
 
   // 自定义事件示例
