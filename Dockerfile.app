@@ -1,6 +1,10 @@
 # 使用 Node.js 官方镜像
 FROM node:18-slim
 
+# 使用阿里云镜像源
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list
+
 # 安装构建依赖
 RUN apt-get update && apt-get install -y \
     python3 \
