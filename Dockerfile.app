@@ -23,8 +23,13 @@ WORKDIR /app
 
 # 复制项目文件
 COPY package*.json ./
-RUN npm config set registry https://registry.npmmirror.com
-RUN npm ci
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip config set global.timeout 1000 && \
+    python3 -m pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm config set fetch-timeout 600000 && \
+    npm config set network-timeout 600000 && \
+    npm ci --unsafe-perm
 COPY . .
 
 # 构建项目
