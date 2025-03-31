@@ -1,0 +1,37 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]  # 当推送到 main 分支时触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: |
+          # 进入项目目录
+          cd /www/video_conference_server
+          
+          # 拉取最新代码
+          git pull origin main
+          
+          # 构建新的 Docker 镜像（使用包含 PM2 的 Dockerfile）
+          docker build -t nestjs-app:latest -f Dockerfile.app .
+          
+          # 停止并删除旧容器
+          docker stop app-container || true
+          docker rm app-container || true
+          
+          # 启动新容器（使用 PM2）
+          docker run -d \
+            --name app-container \
+            -p 3000:3000 \
+            --restart unless-stopped \
+            nestjs-app:latest 
