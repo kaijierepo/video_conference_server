@@ -16,11 +16,17 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}
         script: |
-          # 进入项目目录
-          cd /www/video_conference_server
-          
-          # 拉取最新代码
-          git pull origin main
+          # 检查项目目录是否存在
+          if [ ! -d "/www/video_conference_server" ]; then
+            # 如果目录不存在，创建目录并克隆仓库
+            mkdir -p /www/video_conference_server
+            cd /www
+            git clone https://github.com/kaijierepo/video_conference_server.git
+          else
+            # 如果目录存在，进入目录并拉取更新
+            cd /www/video_conference_server
+            git pull origin main
+          fi
           
           # 构建新的 Docker 镜像（使用包含 PM2 的 Dockerfile）
           docker build -t nestjs-app:latest -f Dockerfile.app .
