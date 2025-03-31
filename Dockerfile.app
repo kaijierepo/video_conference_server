@@ -1,5 +1,14 @@
-# 使用 Node.js 官方镜像作为基础镜像
+# 使用 Node.js 官方镜像
 FROM node:18-slim
+
+# 安装构建依赖
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    build-essential \
+    && ln -s /usr/bin/python3 /usr/bin/python \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # 全局安装 PM2
 RUN npm install -g pm2
