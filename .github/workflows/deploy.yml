@@ -21,7 +21,7 @@ jobs:
             # 如果目录不存在，创建目录并克隆仓库
             mkdir -p /www/video_conference_server
             cd /www
-            git clone https://github.com/kaijierepo/video_conference_server.git
+            git clone https://oauth2:${{ secrets.GIT_TOKEN }}@github.com/kaijie/video_conference_server.git
           else
             # 如果目录存在，进入目录并拉取更新
             cd /www/video_conference_server
