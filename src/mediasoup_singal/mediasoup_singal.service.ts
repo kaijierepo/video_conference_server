@@ -96,7 +96,7 @@ export class MediasoupSingalService implements OnModuleInit {
   }
 
   // 获取房间内所有的生产者
-  @ApiOperation({ summary: 'Get producers' })
+  @ApiOperation({ summary: '获取房间内所有的生产者' })
   async getProducers(data: any): Promise<any> {
     const routerData = this.routers.get(data.roomId);
     if (!routerData) {
