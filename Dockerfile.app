@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3-venv \
     build-essential \
     gcc \
     g++ \
@@ -15,19 +16,27 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建并激活 Python 虚拟环境
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 # 设置 npm 和 pip 镜像源及超时设置
 RUN npm config set registry https://registry.npmmirror.com && \
     npm config set fetch-timeout 1000000 && \
     npm config set network-timeout 1000000 && \
-    python3 -m pip install -i https://mirrors.aliyun.com/pypi/simple/ --upgrade pip && \
+    python3 -m pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ --upgrade pip && \
     python3 -m pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
-    python3 -m pip config set global.timeout 1000
+    python3 -m pip config set global.timeout 1000 && \
+    python3 -m pip config set global.retries 10
+
+# 预先安装 mediasoup 所需的 Python 包
+RUN python3 -m pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ invoke meson ninja
 
 # 复制 package.json 文件
 COPY package*.json ./
 
-# 安装 Node.js 依赖
-RUN npm install --unsafe-perm
+# 安装 Node.js 依赖（使用 install 而不是 ci）
+RUN npm install --unsafe-perm --verbose
 
 # 复制项目文件
 COPY . .
