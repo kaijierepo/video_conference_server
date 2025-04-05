@@ -48,17 +48,42 @@ jobs:
             exit 1
           fi
           
-          # 构建新的 Docker 镜像
+          # 停止并删除旧容器（忽略错误）
+          docker stop app-container mongodb-container || true
+          docker rm app-container mongodb-container || true
+          
+          # 创建 Docker 网络（如果不存在）
+          docker network create app-network || true
+          
+          # 启动 MongoDB 容器
+          docker run -d \
+            --name mongodb-container \
+            --network app-network \
+            -v mongodb_data:/data/db \
+            -v mongodb_config:/data/configdb \
+            -p 27017:27017 \
+            --restart unless-stopped \
+            mongo:latest
+          
+          # 构建新的应用镜像
           docker build -t nestjs-app:latest -f Dockerfile.app . || exit 1
           
-          # 停止并删除旧容器（忽略错误）
-          docker stop app-container || true
-          docker rm app-container || true
-          
-          # 启动新容器（使用 PM2）
+          # 启动应用容器
           docker run -d \
             --name app-container \
+            --network app-network \
             -p 3000:3000 \
             --restart unless-stopped \
+            -e MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }} \
+            -e MONGODB_URI=mongodb://mongodb:27017/video_conference \
             nestjs-app:latest
+          
+          # 检查容器状态
+          docker ps
+          
+          # 等待服务启动
+          sleep 10
+          
+          # 检查 MongoDB 连接
+          docker exec mongodb-container mongosh --eval "db.stats()"
 
