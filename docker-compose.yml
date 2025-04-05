@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile.app
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
     volumes:
@@ -18,7 +20,27 @@ services:
       - ./package-lock.json:/app/package-lock.json
     # 开发环境使用 nodemon 实现热重载
     command: npm run start:dev
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
 
 networks:
   app-network:
     driver: bridge 
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local    

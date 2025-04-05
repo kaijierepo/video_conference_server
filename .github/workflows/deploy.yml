@@ -9,6 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+     # 缓存 Docker 层
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
       with:
@@ -28,6 +37,10 @@ jobs:
             git fetch --all
             git reset --hard origin/main
           fi
+
+          # 创建或更新 .env 文件
+          echo "MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }}" > .env
+          echo "MONGODB_URI=mongodb://mongodb:27017/video_conference" >> .env
           
           # 检查 Dockerfile.app 是否存在
           if [ ! -f "Dockerfile.app" ]; then
@@ -47,4 +60,5 @@ jobs:
             --name app-container \
             -p 3000:3000 \
             --restart unless-stopped \
-            nestjs-app:latest 
+            nestjs-app:latest
+

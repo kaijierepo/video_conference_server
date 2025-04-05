@@ -60,7 +60,9 @@ export class MediasoupSingalService implements OnModuleInit {
 
   constructor() {
     this.webrtcTransportOptions = {
-      listenInfos: [{ ip: '0.0.0.0', announcedIp: '192.168.110.130' }],
+      listenInfos: [
+        { ip: '0.0.0.0', announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP },
+      ],
       enableUdp: true,
       enableTcp: true,
       preferUdp: true,
