@@ -1,5 +1,5 @@
-# 使用 Node.js 官方镜像
-FROM node:18-slim
+# 构建阶段
+FROM node:18-slim AS builder
 
 # 配置镜像源
 RUN echo "deb https://mirrors.aliyun.com/debian/ bullseye main contrib non-free" > /etc/apt/sources.list && \
@@ -15,29 +15,43 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 全局安装 PM2
-RUN npm install -g pm2 @nestjs/cli
+# 全局安装 NestJS CLI
+RUN npm install -g @nestjs/cli
 
-# 设置工作目录
 WORKDIR /app
 
-# 复制项目文件
+# 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装依赖
+# 安装所有依赖（包括开发依赖）
 RUN npm cache clean --force && \
-    npm ci --production && \
-    ls -la node_modules  # 验证安装 
+    npm ci
 
-# 复制项目文件
+# 复制源代码
 COPY . .
 
-# 构建项目
+# 构建应用
 RUN npm run build
 
-# 复制 PM2 配置文件
+# 生产阶段
+FROM node:18-slim
+
+# 全局安装 PM2
+RUN npm install -g pm2
+
+WORKDIR /app
+
+# 复制 package.json 和 package-lock.json
+COPY package*.json ./
+
+# 只安装生产依赖
+RUN npm ci --production && \
+    npm cache clean --force
+
+# 从构建阶段复制构建后的文件
 COPY --from=builder /app/dist ./dist
 COPY ecosystem.config.js .
 
-# 使用 PM2 启动应用
-CMD ["pm2-runtime", "ecosystem.config.js"]
+EXPOSE 3000
+
+CMD ["pm2-runtime", "dist/main.js"]
