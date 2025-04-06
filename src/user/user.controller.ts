@@ -25,6 +25,13 @@ export class UserController {
   }
 
   @Public()
+  @Post('/test')
+  @HttpCode(200)
+  test() {
+    return { message: 'hello world' };
+  }
+
+  @Public()
   @Post('/login')
   @HttpCode(200)
   login(@Body() createUserDto: CreateUserDto) {
