@@ -23,11 +23,23 @@ WORKDIR /app
 
 # 复制项目文件
 COPY package*.json ./
-RUN npm ci
+
+# 安装依赖
+RUN npm cache clean --force && \
+    npm ci --production && \
+    ls -la node_modules  # 验证安装 
+
+# 复制项目文件
 COPY . .
 
 # 构建项目
 RUN npm run build
+
+
+# 从构建阶段复制必要文件
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 
 # 复制 PM2 配置文件
 COPY ecosystem.config.js .
