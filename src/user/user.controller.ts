@@ -25,7 +25,7 @@ export class UserController {
   }
 
   @Public()
-  @Post('/test')
+  @Get('/test')
   @HttpCode(200)
   test() {
     return { message: 'hello world' };
