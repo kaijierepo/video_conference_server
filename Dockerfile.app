@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 全局安装 PM2
-RUN npm install -g pm2
+RUN npm install -g pm2 @nestjs/cli
 
 # 设置工作目录
 WORKDIR /app
@@ -36,6 +36,7 @@ COPY . .
 RUN npm run build
 
 # 复制 PM2 配置文件
+COPY --from=builder /app/dist ./dist
 COPY ecosystem.config.js .
 
 # 使用 PM2 启动应用
