@@ -49,9 +49,13 @@ RUN npm ci --production && \
     npm cache clean --force
 
 # 从构建阶段复制构建后的文件
+# 仅复制必要文件
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 COPY ecosystem.config.js .
 
 EXPOSE 3000
 
-CMD ["pm2-runtime", "dist/main.js"]
+# 启动命令
+CMD ["npm", "run", "start:prod"]
