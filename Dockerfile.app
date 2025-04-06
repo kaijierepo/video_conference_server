@@ -29,5 +29,8 @@ COPY . .
 # 构建项目
 RUN npm run build
 
+# 复制 PM2 配置文件
+COPY ecosystem.config.js .
+
 # 使用 PM2 启动应用
-CMD ["pm2-runtime", "dist/main.js"] 
+CMD ["pm2-runtime", "ecosystem.config.js"]
