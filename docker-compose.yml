@@ -14,7 +14,6 @@ services:
       - NODE_ENV=development
     volumes:
       # 挂载源代码目录
-      - ./:/app
       - /app/node_modules
       # 挂载 package.json 和 package-lock.json
       - ./package.json:/app/package.json
