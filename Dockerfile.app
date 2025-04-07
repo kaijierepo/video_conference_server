@@ -45,16 +45,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # 只安装生产依赖
-RUN npm ci --production && \
-    npm cache clean --force
+RUN npm ci --only=production && \
+    npm cache clean --force  # 清理缓存减小镜像大小
 
-# 从构建阶段复制构建后的文件
-# 仅复制必要文件
-COPY --from=builder /app/node_modules ./node_modules
+# 从构建阶段复制编译后的代码
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY ecosystem.config.js .
 
+# 暴露端口
 EXPOSE 3000
 
 # 启动命令

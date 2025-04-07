@@ -11,15 +11,13 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
     volumes:
       # 挂载源代码目录
       - /app/node_modules
       # 挂载 package.json 和 package-lock.json
       - ./package.json:/app/package.json
       - ./package-lock.json:/app/package-lock.json
-    # 开发环境使用 nodemon 实现热重载
-    command: npm run start:dev
     depends_on:
       - mongodb
     networks:
