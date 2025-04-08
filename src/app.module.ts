@@ -9,10 +9,14 @@ import { UserModule } from './user/user.module';
 import { HashService } from './hash/hash.service';
 import { MediasoupSingalModule } from './mediasoup_singal/mediasoup_singal.module';
 import { JwtModule } from '@nestjs/jwt';
-
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/video_conference'),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI),
     UserModule,
     RoomModule,
     MediasoupSingalModule,
