@@ -9,15 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-     # 缓存 Docker 层
-    - name: Cache Docker layers
-      uses: actions/cache@v3
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-
     - name: Deploy to Server
       uses: appleboy/ssh-action@master
       with:
@@ -50,10 +41,15 @@ jobs:
           
           # 创建 Docker 网络（如果不存在）
           docker network create app-network || true
+
+          # 清理所有未使用的构建缓存
+          docker builder prune -f
+          # 或者清理所有未使用的 Docker 资源
+          docker system prune -f
           
           
           # 构建新的应用镜像
-          docker build -t nestjs-app:latest -f Dockerfile.app . || exit 1
+          docker build --no-cache -t nestjs-app:latest -f Dockerfile.app . || exit 1
           
           # 启动应用容器
           docker run -d \
