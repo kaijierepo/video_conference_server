@@ -44,8 +44,6 @@ WORKDIR /app
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-COPY .env .env
-
 # 只安装生产依赖
 RUN npm ci --only=production && \
     npm cache clean --force  # 清理缓存减小镜像大小
