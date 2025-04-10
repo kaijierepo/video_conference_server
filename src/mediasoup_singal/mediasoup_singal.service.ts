@@ -346,7 +346,7 @@ export class MediasoupSingalService implements OnModuleInit {
       listenIps: [
         {
           ip: '0.0.0.0', // 监听所有接口
-          announcedIp: '192.168.110.130', // 重要：需要设置为你的服务器公网IP
+          announcedIp: process.env.ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
         },
       ],
     });
@@ -435,7 +435,7 @@ export class MediasoupSingalService implements OnModuleInit {
         listenIps: [
           {
             ip: '0.0.0.0', // 监听所有接口
-            announcedIp: '192.168.110.130', // 重要：需要设置为你的服务器公网IP
+            announcedIp: process.env.ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
           },
         ],
       });
@@ -501,7 +501,7 @@ export class MediasoupSingalService implements OnModuleInit {
   async connectProducerToTransport(producer, transport, recordRouter) {
     if (producer.kind === 'video') {
       await transport.connect({
-        ip: '127.0.0.1',
+        ip: process.env.ANNOUNCED_IP,
         port: 5006,
         rtcpPort: 5007,
       });
