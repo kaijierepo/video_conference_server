@@ -61,7 +61,7 @@ export class MediasoupSingalService implements OnModuleInit {
   constructor() {
     this.webrtcTransportOptions = {
       listenInfos: [
-        { ip: '0.0.0.0', announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP },
+        { ip: '0.0.0.0', announcedAddress: process.env.MEDIASOUP_ANNOUNCED_IP },
       ],
       enableUdp: true,
       enableTcp: true,
@@ -343,12 +343,12 @@ export class MediasoupSingalService implements OnModuleInit {
       consuming: false,
       initialAvailableOutgoingBitrate: 1000000,
       // 确保这些参数正确
-      listenIps: [
-        {
-          ip: '0.0.0.0', // 监听所有接口
-          announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
-        },
-      ],
+      // listenIps: [
+      //   {
+      //     ip: '0.0.0.0', // 监听所有接口
+      //     announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
+      //   },
+      // ],
     });
     clientData.producerTransport = transport;
 
@@ -432,12 +432,12 @@ export class MediasoupSingalService implements OnModuleInit {
         consuming: true,
         initialAvailableOutgoingBitrate: 1000000,
         // 确保这些参数正确
-        listenIps: [
-          {
-            ip: '0.0.0.0', // 监听所有接口
-            announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
-          },
-        ],
+        // listenIps: [
+        //   {
+        //     ip: '0.0.0.0', // 监听所有接口
+        //     announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
+        //   },
+        // ],
       });
 
       // 监听传输事件
