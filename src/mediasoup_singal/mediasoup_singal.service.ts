@@ -75,7 +75,7 @@ export class MediasoupSingalService implements OnModuleInit {
       logLevel: 'debug',
       logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
       rtcMinPort: 20000,
-      rtcMaxPort: 20100,
+      rtcMaxPort: 20500,
     });
     // await this.runMediasoup();
     // this.createRtpTransport = this.createRtpTransport.bind(this);

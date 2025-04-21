@@ -53,6 +53,8 @@ COPY --from=builder /app/dist ./dist
 
 # 暴露端口
 EXPOSE 3000
+EXPOSE 20000-20500/udp
+EXPOSE 20000-20500/tcp
 
 # 启动命令
 CMD ["npm", "run", "start:prod"]
