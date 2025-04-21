@@ -67,6 +67,12 @@ export class MediasoupSingalService implements OnModuleInit {
       enableTcp: true,
       preferUdp: true,
       initialAvailableOutgoingBitrate: 1000000,
+      listenIps: [
+        {
+          ip: '0.0.0.0',
+          announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP,
+        },
+      ],
     };
   }
 
