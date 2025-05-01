@@ -61,7 +61,10 @@ export class MediasoupSingalService implements OnModuleInit {
   constructor() {
     this.webrtcTransportOptions = {
       listenInfos: [
-        { ip: '0.0.0.0', announcedAddress: process.env.MEDIASOUP_ANNOUNCED_IP },
+        {
+          ip: '0.0.0.0',
+          announcedAddress: process.env.MEDIASOUP_ANNOUNCED_IP,
+        },
       ],
       enableUdp: true,
       enableTcp: true,
@@ -80,8 +83,8 @@ export class MediasoupSingalService implements OnModuleInit {
     this.worker = await createWorker({
       logLevel: 'debug',
       logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
-      rtcMinPort: 20000,
-      rtcMaxPort: 20500,
+      rtcMinPort: 10000,
+      rtcMaxPort: 30000,
     });
     // await this.runMediasoup();
     // this.createRtpTransport = this.createRtpTransport.bind(this);
@@ -348,14 +351,23 @@ export class MediasoupSingalService implements OnModuleInit {
       producing: true,
       consuming: false,
       initialAvailableOutgoingBitrate: 1000000,
-      // 确保这些参数正确
-      // listenIps: [
-      //   {
-      //     ip: '0.0.0.0', // 监听所有接口
-      //     announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
-      //   },
-      // ],
     });
+
+    // 添加 ICE 状态监控
+    transport.on('icestatechange', (iceState) => {
+      this.logger.log(`Producer transport ICE state changed to ${iceState}`);
+    });
+
+    transport.on('dtlsstatechange', (dtlsState) => {
+      this.logger.log(`Producer transport DTLS state changed to ${dtlsState}`);
+    });
+
+    transport.on('iceselectedtuplechange', (iceState) => {
+      this.logger.log(
+        `Producer transport connection tuple changed: ${JSON.stringify(iceState)}`,
+      );
+    });
+
     clientData.producerTransport = transport;
 
     // 正确处理 ICE candidates
@@ -438,12 +450,12 @@ export class MediasoupSingalService implements OnModuleInit {
         consuming: true,
         initialAvailableOutgoingBitrate: 1000000,
         // 确保这些参数正确
-        // listenIps: [
-        //   {
-        //     ip: '0.0.0.0', // 监听所有接口
-        //     announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
-        //   },
-        // ],
+        listenIps: [
+          {
+            ip: '0.0.0.0', // 监听所有接口
+            announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP, // 重要：需要设置为你的服务器公网IP
+          },
+        ],
       });
 
       // 监听传输事件
@@ -507,7 +519,7 @@ export class MediasoupSingalService implements OnModuleInit {
   async connectProducerToTransport(producer, transport, recordRouter) {
     if (producer.kind === 'video') {
       await transport.connect({
-        ip: process.env.MEDIASOUP_ANNOUNCED_IP,
+        ip: '127.0.0.1',
         port: 5006,
         rtcpPort: 5007,
       });
