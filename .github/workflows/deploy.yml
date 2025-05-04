@@ -59,6 +59,7 @@ jobs:
           docker run -d \
             --name app-container \
             --network app-network \
+            -p 10000-30000:10000-30000/udp \
             -p 3000:3000 \
             --restart unless-stopped \
             -e MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }} \
