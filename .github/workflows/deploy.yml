@@ -40,25 +40,6 @@ jobs:
             exit 1
           fi
           
-          # 确保网络存在（使用更可靠的方式）
-          echo "Setting up network..."
-          # 先删除可能存在的网络
-          docker network rm app-network || true
-          # 创建新网络
-          docker network create --driver bridge app-network || {
-            echo "Failed to create network"
-            echo "Current networks:"
-            docker network ls
-            exit 1
-          }
-
-          # 验证网络创建
-          echo "Verifying network..."
-          docker network inspect app-network || {
-            echo "Network verification failed"
-            exit 1
-          }
-
           # 清理所有未使用的构建缓存
           echo "Cleaning up Docker..."
           docker builder prune -f
@@ -77,20 +58,17 @@ jobs:
           docker stop app-container || true
           docker rm app-container || true
           
-          # 启动应用容器（添加更多错误处理）
+          # 启动应用容器（使用 host 网络）
           echo "Starting new container..."
           docker run -d \
             --name app-container \
-            --network app-network \
-            -p 3000:3000 \
+            --network host \
             --restart unless-stopped \
             -e MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }} \
             -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
             -e NODE_ENV=production \
             nestjs-app:latest || {
               echo "Failed to start container"
-              echo "Network status:"
-              docker network ls
               echo "Container status:"
               docker ps -a
               echo "Container logs:"
