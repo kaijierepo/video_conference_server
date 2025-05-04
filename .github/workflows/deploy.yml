@@ -53,8 +53,8 @@ jobs:
           docker build --no-cache -t nestjs-app:latest -f Dockerfile.app . || exit 1
 
           # 停止并删除旧容器（如果存在）
-          # docker stop app-container || true
-          # docker rm app-container || true
+          docker stop app-container || true
+          docker rm app-container || true
           
           # 启动应用容器
           docker run -d \
