@@ -55,6 +55,8 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 EXPOSE 20000-20500/udp
 EXPOSE 20000-20500/tcp
+EXPOSE 10000-30000/udp
+EXPOSE 10000-30000/tcp
 
 # 启动命令
 CMD ["npm", "run", "start:prod"]
