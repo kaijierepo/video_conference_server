@@ -40,8 +40,8 @@ jobs:
             exit 1
           fi
           
-          # 创建 Docker 网络（如果不存在）
-          docker network create app-network || true
+          # 确保网络存在
+          docker network inspect app-network >/dev/null 2>&1 || docker network create app-network
 
           # 清理所有未使用的构建缓存
           docker builder prune -f
@@ -49,8 +49,8 @@ jobs:
           docker system prune -f
           
           
-          # 构建新的应用镜像 --no-cache
-          docker build --no-cache -t nestjs-app:latest -f Dockerfile.app . || exit 1
+          # 构建新的应用镜像
+          docker build -t nestjs-app:latest -f Dockerfile.app . || exit 1
 
           # 停止并删除旧容器（如果存在）
           docker stop app-container || true
@@ -60,12 +60,17 @@ jobs:
           docker run -d \
             --name app-container \
             --network app-network \
+            -p 10000-30000:10000-30000/udp \
             -p 3000:3000 \
             --restart unless-stopped \
             -e MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }} \
             -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
             -e NODE_ENV=production \
-            nestjs-app:latest
+            nestjs-app:latest || {
+              echo "Failed to start container"
+              docker logs app-container
+              exit 1
+            }
           
            # 等待几秒钟让应用启动
           sleep 10
