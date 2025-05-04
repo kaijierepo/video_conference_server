@@ -40,16 +40,26 @@ jobs:
             exit 1
           fi
           
-          # 确保网络存在（添加更多错误处理）
-          echo "Checking/creating network..."
-          if ! docker network inspect app-network >/dev/null 2>&1; then
-            echo "Creating network app-network..."
-            docker network create app-network || {
-              echo "Failed to create network"
-              docker network ls
+          # 确保网络存在（使用更可靠的方式）
+          echo "Setting up network..."
+          docker network rm app-network || true
+          docker network create app-network || {
+            echo "Failed to create network"
+            echo "Current networks:"
+            docker network ls
+            echo "Trying to create network with specific driver..."
+            docker network create --driver bridge app-network || {
+              echo "Failed to create network with bridge driver"
               exit 1
             }
-          fi
+          }
+
+          # 验证网络创建
+          echo "Verifying network..."
+          docker network inspect app-network || {
+            echo "Network verification failed"
+            exit 1
+          }
 
           # 清理所有未使用的构建缓存
           echo "Cleaning up Docker..."
