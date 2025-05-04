@@ -40,27 +40,40 @@ jobs:
             exit 1
           fi
           
-          # 确保网络存在
-          docker network inspect app-network >/dev/null 2>&1 || docker network create app-network
+          # 确保网络存在（添加更多错误处理）
+          echo "Checking/creating network..."
+          if ! docker network inspect app-network >/dev/null 2>&1; then
+            echo "Creating network app-network..."
+            docker network create app-network || {
+              echo "Failed to create network"
+              docker network ls
+              exit 1
+            }
+          fi
 
           # 清理所有未使用的构建缓存
+          echo "Cleaning up Docker..."
           docker builder prune -f
-          # 或者清理所有未使用的 Docker 资源
           docker system prune -f
           
           
           # 构建新的应用镜像
-          docker build -t nestjs-app:latest -f Dockerfile.app . || exit 1
+          echo "Building new image..."
+          docker build -t nestjs-app:latest -f Dockerfile.app . || {
+            echo "Failed to build image"
+            exit 1
+          }
 
           # 停止并删除旧容器（如果存在）
+          echo "Removing old container..."
           docker stop app-container || true
           docker rm app-container || true
           
-          # 启动应用容器
+          # 启动应用容器（添加更多错误处理）
+          echo "Starting new container..."
           docker run -d \
             --name app-container \
             --network app-network \
-            -p 10000-30000:10000-30000/udp \
             -p 3000:3000 \
             --restart unless-stopped \
             -e MEDIASOUP_ANNOUNCED_IP=${{ secrets.MEDIASOUP_ANNOUNCED_IP }} \
@@ -68,15 +81,29 @@ jobs:
             -e NODE_ENV=production \
             nestjs-app:latest || {
               echo "Failed to start container"
-              docker logs app-container
+              echo "Network status:"
+              docker network ls
+              echo "Container status:"
+              docker ps -a
+              echo "Container logs:"
+              docker logs app-container || true
               exit 1
             }
           
-           # 等待几秒钟让应用启动
+          # 等待应用启动
+          echo "Waiting for container to start..."
           sleep 10
           
-          # 查看容器状态和日志
+          # 验证容器状态
+          echo "Checking container status..."
           docker ps
+          docker inspect app-container || {
+            echo "Container inspection failed"
+            exit 1
+          }
+          
+          # 查看容器日志
+          echo "Container logs:"
           docker logs --tail 50 app-container
         
 
