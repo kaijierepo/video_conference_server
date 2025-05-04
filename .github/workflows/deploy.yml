@@ -49,8 +49,8 @@ jobs:
           docker system prune -f
           
           
-          # 构建新的应用镜像
-          docker build --no-cache -t nestjs-app:latest -f Dockerfile.app . || exit 1
+          # 构建新的应用镜像 --no-cache
+          docker build -t nestjs-app:latest -f Dockerfile.app . || exit 1
 
           # 停止并删除旧容器（如果存在）
           docker stop app-container || true
