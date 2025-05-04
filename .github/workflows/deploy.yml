@@ -42,16 +42,14 @@ jobs:
           
           # 确保网络存在（使用更可靠的方式）
           echo "Setting up network..."
+          # 先删除可能存在的网络
           docker network rm app-network || true
-          docker network create app-network || {
+          # 创建新网络
+          docker network create --driver bridge app-network || {
             echo "Failed to create network"
             echo "Current networks:"
             docker network ls
-            echo "Trying to create network with specific driver..."
-            docker network create --driver bridge app-network || {
-              echo "Failed to create network with bridge driver"
-              exit 1
-            }
+            exit 1
           }
 
           # 验证网络创建
